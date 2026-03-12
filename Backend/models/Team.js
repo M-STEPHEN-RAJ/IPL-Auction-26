@@ -22,6 +22,11 @@ const teamSchema = new mongoose.Schema({
     default: 13
   },
 
+  maxForeignPlayers: {
+    type: Number,
+    default: 5
+  },
+
   players: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "Player"

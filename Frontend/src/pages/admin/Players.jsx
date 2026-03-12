@@ -16,6 +16,7 @@ const Players = () => {
   const [nationality, setNationality] = useState("all");
 
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
 
   const statusRef = useRef();
   const roleRef = useRef();
@@ -36,7 +37,7 @@ const Players = () => {
 
   useEffect(() => {
     fetchPlayers();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name, status, role, nationality]);
 
   useEffect(() => {
@@ -66,10 +67,54 @@ const Players = () => {
 
   return (
     <>
-      <div className="w-full h-screen flex justify-center py-10">
+      <div className="w-full h-screen flex justify-center py-10 bg-black">
         <div className="w-full max-w-6xl h-full space-y-8">
+          <div className="flex gap-5">
+            <div className="flex-1 border border-gray-300 rounded-md p-3 space-y-3">
+              <h2 className="font-bold text-xl text-white">Player Details</h2>
+
+              {!selectedPlayer && (
+                <div className="p-6 text-gray-500">
+                  Select a player to see details
+                </div>
+              )}
+
+              {selectedPlayer && (
+              <div className="relative flex flex-col justify-between rounded-md pt-3 px-5 text-white bg-[#38365B]">
+                <div
+                  className="absolute inset-0 opacity-50"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(#ffffff22 1px, transparent 1px), linear-gradient(90deg, #ffffff22 1px, transparent 1px)",
+                    backgroundSize: "30px 30px",
+                  }}
+                ></div>
+
+                <div className="w-fit relative">
+                  <img
+                    src={selectedPlayer.image}
+                    alt=""
+                    className="relative w-34 h-34 object-contain z-10"
+                  />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2  w-33 h-33 bg-[#E2D284] rounded-full"></div>
+                </div>
+
+                <h2>{selectedPlayer.name}</h2>
+                <h2>{selectedPlayer.role}</h2>
+                <h2>{selectedPlayer.rating}</h2>
+                <h2>₹ {selectedPlayer.basePrice / 100} Cr</h2>
+                <h2>{selectedPlayer.country}</h2>
+                <h2>{selectedPlayer.status}</h2>
+              </div>
+              )}
+            </div>
+            <div className="flex-1 border border-gray-300 rounded-md p-3 space-y-3">
+              <h2 className="font-bold text-xl text-white">Auction Actions</h2>
+            </div>
+          </div>
+
           <div className="flex items-center gap-5">
-            <div className="w-110 flex items-center gap-4 border border-gray-300 px-3 py-1.5 rounded-full">
+            <div className="w-110 flex items-center gap-4 bg-white border border-gray-300 px-3 py-1.5 rounded-full">
               <img className="w-6" src={search} alt="" />
               <input
                 className="w-full outline-none"
@@ -81,15 +126,19 @@ const Players = () => {
             </div>
             {/* Status Dropdown */}
             <div className="relative flex items-center gap-2" ref={statusRef}>
-              <p>Status:</p>
+              <p className="text-white">Status:</p>
               <div
                 onClick={() =>
                   setOpenDropdown(openDropdown === "status" ? null : "status")
                 }
-                className="flex items-center justify-between w-34 px-4 py-1.5 border border-gray-300 rounded-md cursor-pointer capitalize"
+                className="flex items-center justify-between w-34 px-4 py-1.5 bg-white border border-gray-300 rounded-md cursor-pointer capitalize"
               >
                 {status}
-                <img className={`w-4 h-4 transition-all duration-200 ${openDropdown === "status" ? "rotate-180" : ""}`} src={dropdown} alt="" />
+                <img
+                  className={`w-4 h-4 transition-all duration-200 ${openDropdown === "status" ? "rotate-180" : ""}`}
+                  src={dropdown}
+                  alt=""
+                />
               </div>
               {openDropdown === "status" && (
                 <div className="absolute top-12 left-15 w-40 border border-gray-300 bg-white rounded-xl shadow-md z-10">
@@ -111,15 +160,19 @@ const Players = () => {
 
             {/* Role Dropdown */}
             <div className="relative flex items-center gap-2" ref={roleRef}>
-              <p>Role:</p>
+              <p className="text-white">Role:</p>
               <div
                 onClick={() =>
                   setOpenDropdown(openDropdown === "role" ? null : "role")
                 }
-                className="flex items-center justify-between w-46 px-4 py-1.5 border border-gray-300 rounded-md cursor-pointer capitalize"
+                className="flex items-center justify-between w-46 px-4 py-1.5 bg-white border border-gray-300 rounded-md cursor-pointer capitalize"
               >
                 {role}
-                <img className={`w-4 h-4 transition-all duration-200 ${openDropdown === "role" ? "rotate-180" : ""}`} src={dropdown} alt="" />
+                <img
+                  className={`w-4 h-4 transition-all duration-200 ${openDropdown === "role" ? "rotate-180" : ""}`}
+                  src={dropdown}
+                  alt=""
+                />
               </div>
               {openDropdown === "role" && (
                 <div className="absolute top-12 left-11 w-50 border border-gray-300 bg-white rounded-xl shadow-md z-10">
@@ -140,18 +193,25 @@ const Players = () => {
             </div>
 
             {/* Nationality Dropdown */}
-            <div className="relative flex items-center gap-2" ref={nationalityRef}>
-              <p>Nationality:</p>
+            <div
+              className="relative flex items-center gap-2"
+              ref={nationalityRef}
+            >
+              <p className="text-white">Nationality:</p>
               <div
                 onClick={() =>
                   setOpenDropdown(
                     openDropdown === "nationality" ? null : "nationality",
                   )
                 }
-                className="flex items-center justify-between w-34 px-4 py-1.5 border border-gray-300 rounded-md cursor-pointer capitalize"
+                className="flex items-center justify-between w-34 px-4 py-1.5 bg-white border border-gray-300 rounded-md cursor-pointer capitalize"
               >
                 {nationality}
-                <img className={`w-4 h-4 transition-all duration-200 ${openDropdown === "nationality" ? "rotate-180" : ""}`} src={dropdown} alt="" />
+                <img
+                  className={`w-4 h-4 transition-all duration-200 ${openDropdown === "nationality" ? "rotate-180" : ""}`}
+                  src={dropdown}
+                  alt=""
+                />
               </div>
               {openDropdown === "nationality" && (
                 <div className="absolute top-12 left-24 w-40 border border-gray-300 bg-white rounded-xl shadow-md z-10">
@@ -176,36 +236,50 @@ const Players = () => {
             {players.map((player) => (
               <div
                 key={player._id}
-                className="flex justify-between border border-gray-300 rounded-2xl pt-3 px-5"
+                onClick={() => setSelectedPlayer(player)}
+                className="relative flex justify-between rounded-2xl pt-3 px-5 bg-[#38365B]"
               >
+                <div
+                  className="absolute inset-0 opacity-50"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(#ffffff22 1px, transparent 1px), linear-gradient(90deg, #ffffff22 1px, transparent 1px)",
+                    backgroundSize: "30px 30px",
+                  }}
+                ></div>
                 <div className="flex space-x-5">
-                  <img
-                    src={player.image}
-                    alt=""
-                    className="w-34 h-34 object-contain"
-                  />
+                  <div className="relative">
+                    <img
+                      src={player.image}
+                      alt=""
+                      className="relative w-34 h-34 object-contain z-10"
+                    />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2  w-33 h-33 bg-[#E2D284] rounded-full"></div>
+                  </div>
                   <div className="flex flex-col justify-between pb-3">
                     <div className="">
                       <div className="flex items-center gap-5">
-                        <h2 className="font-bold text-2xl">{player.name}</h2>
+                        <h2 className="font-bold text-2xl text-[#E2D284]">
+                          {player.name}
+                        </h2>
                         <div className="flex items-center gap-1">
                           <img
                             src={rating}
                             alt=""
                             className="w-6 h-6 object-contain mb-1"
                           />
-                          <p className="font-semibold text-lg">
+                          <p className="font-semibold text-lg text-[#E2D284]">
                             {player.rating}
                           </p>
                         </div>
                       </div>
-                      <p className="font-medium text-lg text-gray-500">
+                      <p className="font-medium text-lg text-white">
                         {player.country}
                       </p>
                     </div>
-                      <h2 className="font-medium text-lg text-gray-700">
-                        {player.role}
-                      </h2>
+                    <h2 className="font-medium text-lg text-gray-300">
+                      {player.role}
+                    </h2>
                   </div>
                 </div>
                 <img
@@ -217,7 +291,7 @@ const Players = () => {
                         : available
                   }
                   alt=""
-                  className="w-34 h-34 object-contain pb-3"
+                  className="w-25 h-25 object-contain bg-white rounded-full my-auto"
                 />
               </div>
             ))}
