@@ -118,10 +118,14 @@ export const buyPlayer = async (req, res) => {
 
     await player.save();
 
+    const populatedPlayer = await Player.findById(player._id).populate(
+      "soldTo",
+      "name",
+    );
+
     res.json({
       message: "Player sold successfully!",
-      team,
-      player,
+      player: populatedPlayer,
     });
   } catch (error) {
     res.status(500).json({
@@ -132,20 +136,19 @@ export const buyPlayer = async (req, res) => {
 
 export const markUnsold = async (req, res) => {
   try {
-
     const { playerId } = req.body;
 
     const player = await Player.findById(playerId);
 
     if (!player) {
       return res.status(404).json({
-        message: "Player not found!"
+        message: "Player not found!",
       });
     }
 
     if (player.status === "sold") {
       return res.status(400).json({
-        message: "Player already sold!"
+        message: "Player already sold!",
       });
     }
 
@@ -155,12 +158,61 @@ export const markUnsold = async (req, res) => {
 
     res.json({
       message: "Player marked as unsold!",
-      player
+      player,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+
+export const removePlayerFromTeam = async (req, res) => {
+  try {
+
+    const { playerId } = req.body;
+
+    const player = await Player.findById(playerId);
+
+    if (!player || player.status !== "sold") {
+      return res.status(400).json({
+        message: "Player is not sold!",
+      });
+    }
+
+    const team = await Team.findById(player.soldTo);
+
+    if (!team) {
+      return res.status(404).json({
+        message: "Team not found!",
+      });
+    }
+
+    // remove player from team
+    team.players = team.players.filter(
+      (p) => p.toString() !== player._id.toString()
+    );
+
+    // decrease spent money
+    team.spent -= player.soldPrice;
+
+    await team.save();
+
+    // reset player
+    player.status = "available";
+    player.soldTo = null;
+    player.soldPrice = 0;
+
+    await player.save();
+
+    res.json({
+      message: "Player removed from team successfully!",
     });
 
   } catch (error) {
     res.status(500).json({
-      message: error.message
+      message: error.message,
     });
   }
 };

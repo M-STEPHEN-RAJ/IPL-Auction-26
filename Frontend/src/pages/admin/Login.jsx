@@ -75,22 +75,22 @@ const Login = () => {
         </div>
 
         {/* Right Side */}
-        <div className="bg-white w-1/2 h-full flex flex-col justify-center items-center">
+        <div className=" bg-black w-1/2 h-full flex flex-col justify-center items-center">
           <div className="space-y-10 min-w-112.5">
             <div className="">
-              <h2 className="text-2xl font-semibold">Welcome Back!</h2>
+              <h2 className="text-2xl font-semibold text-white">Welcome Back!</h2>
             </div>
 
             <div className="space-y-5 -mt-3">
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-3">
                 <label
-                  className="text-sm font-medium text-gray-500"
+                  className="text-sm font-medium text-white"
                   htmlFor="email"
                 >
                   Your Email
                 </label>
                 <input
-                  className="px-3 py-2 border border-gray-300 rounded-md outline-none"
+                  className="px-3 py-2 rounded-md outline-none bg-gray-800 text-white"
                   placeholder="example@gmail.com"
                   type="email"
                   name="email"
@@ -100,15 +100,15 @@ const Login = () => {
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-3">
                 <label
-                  className="text-sm font-medium text-gray-500"
+                  className="text-sm font-medium text-white"
                   htmlFor="password"
                 >
                   Password
                 </label>
                 <input
-                  className="px-3 py-2 border border-gray-300 rounded-md outline-none"
+                  className="px-3 py-2 rounded-md outline-none bg-gray-800 text-white"
                   placeholder="Enter your password"
                   type="password"
                   name="password"

@@ -1,11 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
+import toast from "react-hot-toast";
+import AddPlayerModal from "../../components/AddPlayerModal";
 import search from "../../assets/search.png";
 import dropdown from "../../assets/dropdown.png";
 import rating from "../../assets/rating.png";
 import sold from "../../assets/sold.png";
 import unsold from "../../assets/unsold.png";
 import available from "../../assets/available.png";
+import more from "../../assets/more.png";
 
 const Players = () => {
   const [players, setPlayers] = useState([]);
@@ -16,11 +19,18 @@ const Players = () => {
   const [nationality, setNationality] = useState("all");
 
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [openActionDropdown, setOpenActionDropdown] = useState(null);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  const [teams, setTeams] = useState([]);
+  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [bidAmount, setBidAmount] = useState("");
 
   const statusRef = useRef();
   const roleRef = useRef();
   const nationalityRef = useRef();
+  const teamRef = useRef();
 
   const fetchPlayers = async () => {
     try {
@@ -35,6 +45,114 @@ const Players = () => {
     }
   };
 
+  const refreshSelectedPlayer = async (playerId) => {
+    try {
+      const res = await axios.get(`http://localhost:5000/players/${playerId}`);
+      setSelectedPlayer(res.data);
+    } catch (err) {
+      console.error("Error refreshing player:", err);
+    }
+  };
+
+  const fetchTeams = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/teams");
+      setTeams(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const assignPlayer = async () => {
+    if (!selectedTeam) {
+      toast.error("Select a team!");
+      return;
+    }
+
+    if (!bidAmount) {
+      toast.error("Enter bid amount!");
+      return;
+    }
+
+    try {
+      await axios.post(
+        "http://localhost:5000/teams/buy-player",
+        {
+          playerId: selectedPlayer._id,
+          teamId: selectedTeam._id,
+          price: Number(bidAmount),
+        },
+        {
+          withCredentials: true,
+        },
+      );
+
+      setSelectedTeam(null);
+      setBidAmount("");
+      refreshSelectedPlayer(selectedPlayer._id);
+      setOpenDropdown(null);
+
+      fetchPlayers();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Something went wrong!");
+    }
+  };
+
+  const markUnsold = async () => {
+    try {
+      await axios.post(
+        "http://localhost:5000/teams/unsold-player",
+        { playerId: selectedPlayer._id },
+        { withCredentials: true },
+      );
+
+      toast.success("Player marked as Unsold");
+
+      refreshSelectedPlayer(selectedPlayer._id);
+
+      fetchPlayers();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Error marking unsold");
+    }
+  };
+
+  const deletePlayer = async (playerId) => {
+    try {
+      await axios.delete(`http://localhost:5000/players/${playerId}`, {
+        withCredentials: true,
+      });
+
+      toast.success("Player deleted successfully");
+
+      fetchPlayers();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Delete failed");
+    }
+  };
+
+  const removePlayer = async () => {
+    try {
+      await axios.post(
+        "http://localhost:5000/teams/remove-player",
+        { playerId: selectedPlayer._id },
+        { withCredentials: true },
+      );
+
+      toast.success("Player removed from team");
+
+      refreshSelectedPlayer(selectedPlayer._id);
+
+      fetchPlayers();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Error removing player");
+    }
+  };
+
+  useEffect(() => {
+    fetchTeams();
+  }, []);
+
   useEffect(() => {
     fetchPlayers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -48,7 +166,9 @@ const Players = () => {
         roleRef.current &&
         !roleRef.current.contains(event.target) &&
         nationalityRef.current &&
-        !nationalityRef.current.contains(event.target)
+        !nationalityRef.current.contains(event.target) &&
+        teamRef.current &&
+        !teamRef.current.contains(event.target)
       ) {
         setOpenDropdown(null);
       }
@@ -67,10 +187,18 @@ const Players = () => {
 
   return (
     <>
-      <div className="w-full h-screen flex justify-center py-10 bg-black">
+      <div className="w-full min-h-screen flex justify-center py-10 bg-black">
         <div className="w-full max-w-6xl h-full space-y-8">
+          <div className="flex">
+            <div
+              onClick={() => setShowAddModal(true)}
+              className="w-fit px-5 py-1.5 rounded-md cursor-pointer text-white bg-[#38365B] ml-auto"
+            >
+              + Add Player
+            </div>
+          </div>
           <div className="flex gap-5">
-            <div className="flex-1 border border-gray-300 rounded-md p-3 space-y-3">
+            <div className="flex-1 border border-gray-800 rounded-md p-3 space-y-3">
               <h2 className="font-bold text-xl text-white">Player Details</h2>
 
               {!selectedPlayer && (
@@ -80,36 +208,187 @@ const Players = () => {
               )}
 
               {selectedPlayer && (
-              <div className="relative flex flex-col justify-between rounded-md pt-3 px-5 text-white bg-[#38365B]">
-                <div
-                  className="absolute inset-0 opacity-50"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(#ffffff22 1px, transparent 1px), linear-gradient(90deg, #ffffff22 1px, transparent 1px)",
-                    backgroundSize: "30px 30px",
-                  }}
-                ></div>
+                <div className="relative flex flex-col justify-between gap-5 rounded-md py-3 px-5 text-white bg-[#38365B]">
+                  <div
+                    className="absolute inset-0 opacity-50"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(#ffffff22 1px, transparent 1px), linear-gradient(90deg, #ffffff22 1px, transparent 1px)",
+                      backgroundSize: "30px 30px",
+                    }}
+                  ></div>
 
-                <div className="w-fit relative">
-                  <img
-                    src={selectedPlayer.image}
-                    alt=""
-                    className="relative w-34 h-34 object-contain z-10"
-                  />
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2  w-33 h-33 bg-[#E2D284] rounded-full"></div>
+                  <div className="flex">
+                    <div className="w-fit relative">
+                      <img
+                        src={selectedPlayer.image}
+                        alt=""
+                        className="relative w-34 h-34 object-contain z-10"
+                      />
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2  w-33 h-33 bg-[#E2D284] rounded-full"></div>
+                    </div>
+
+                    <div className="py-3 px-5">
+                      <h2 className="font-bold text-2xl text-[#E2D284]">
+                        {selectedPlayer.name}
+                      </h2>
+                      <h2 className="font-medium text-lg text-white">
+                        {selectedPlayer.country}
+                      </h2>
+                      <div className="flex items-center gap-1 mt-2">
+                        <img
+                          src={rating}
+                          alt=""
+                          className="w-6 h-6 object-contain mb-1"
+                        />
+                        <p className="font-semibold text-lg text-[#E2D284]">
+                          {selectedPlayer.rating}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <div className="flex-1 font-medium text-lg text-white px-3 py-1 rounded-md">
+                      <span className="text-gray-300 text-base font-normal">
+                        Role:
+                      </span>{" "}
+                      {selectedPlayer.role}
+                    </div>
+                    <div className="flex-1 font-medium text-lg text-white px-3 py-1 rounded-md">
+                      <span className="text-gray-300 text-base font-normal">
+                        Base Price:
+                      </span>{" "}
+                      ₹ {(selectedPlayer.basePrice / 100).toFixed(2)} Cr
+                    </div>
+                    <img
+                      src={
+                        selectedPlayer.status === "sold"
+                          ? sold
+                          : selectedPlayer.status === "unsold"
+                            ? unsold
+                            : available
+                      }
+                      alt=""
+                      className="absolute top-5 right-5 w-20 h-20 object-contain bg-white rounded-full my-auto"
+                    />
+                  </div>
                 </div>
-
-                <h2>{selectedPlayer.name}</h2>
-                <h2>{selectedPlayer.role}</h2>
-                <h2>{selectedPlayer.rating}</h2>
-                <h2>₹ {selectedPlayer.basePrice / 100} Cr</h2>
-                <h2>{selectedPlayer.country}</h2>
-                <h2>{selectedPlayer.status}</h2>
-              </div>
               )}
             </div>
-            <div className="flex-1 border border-gray-300 rounded-md p-3 space-y-3">
+            <div className="h-70.5 flex-1 border border-gray-800 rounded-md p-3 space-y-3">
               <h2 className="font-bold text-xl text-white">Auction Actions</h2>
+
+              {!selectedPlayer && (
+                <div className="p-6 text-gray-500">
+                  Select a player to perform auctions
+                </div>
+              )}
+
+              {selectedPlayer && (
+                <div className="space-y-5">
+                  <div className="px-3">
+                    <h2 className="text-white font-semibold text-xl">
+                      {selectedPlayer?.name}
+                    </h2>
+                    <h2 className="text-gray-300 font-semibold text-lg">
+                      ₹ {(selectedPlayer.basePrice / 100).toFixed(2)} Cr
+                    </h2>
+                  </div>
+
+                  {selectedPlayer.status === "sold" ? (
+                    <div className="space-y-4 px-3">
+                      <div className="text-white text-lg">
+                        <span className="text-gray-300">Sold to:</span>{" "}
+                        {selectedPlayer.soldTo?.name}
+                      </div>
+
+                      <div className="text-white text-lg">
+                        <span className="text-gray-300">Amount:</span> ₹{" "}
+                        {(selectedPlayer.soldPrice / 100).toFixed(2)} Cr
+                      </div>
+
+                      <div
+                        className="w-full text-center text-white px-3 py-2 rounded-md cursor-pointer bg-red-500"
+                        onClick={() => removePlayer()}
+                      >
+                        Remove from {selectedPlayer.soldTo?.name}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex gap-5 px-3">
+                        <div
+                          className="flex-1 space-y-2 relative"
+                          ref={teamRef}
+                        >
+                          <h2 className="text-white">Select Team</h2>
+                          <div
+                            onClick={() =>
+                              setOpenDropdown(
+                                openDropdown === "team" ? null : "team",
+                              )
+                            }
+                            className="w-full flex items-center justify-between px-4 py-1.5 bg-white border border-gray-300 rounded-md cursor-pointer"
+                          >
+                            {selectedTeam ? selectedTeam.name : "Select Team"}
+
+                            <img
+                              className={`w-4 h-4 transition-all ${
+                                openDropdown === "team" ? "rotate-180" : ""
+                              }`}
+                              src={dropdown}
+                              alt=""
+                            />
+                          </div>
+
+                          {openDropdown === "team" && (
+                            <div className="absolute w-40 border border-gray-300 bg-white rounded-xl shadow-md z-10">
+                              {teams.map((team) => (
+                                <div
+                                  key={team._id}
+                                  onClick={() => {
+                                    setSelectedTeam(team);
+                                    setOpenDropdown(null);
+                                  }}
+                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                >
+                                  {team.name}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <h2 className="text-white">Bid Amount</h2>
+                          <input
+                            type="number"
+                            value={bidAmount}
+                            onChange={(e) => setBidAmount(e.target.value)}
+                            placeholder="Enter bid amount"
+                            className="w-full px-3 py-1.5 rounded-md border border-gray-300 bg-white outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex gap-5 px-3">
+                        <div
+                          onClick={assignPlayer}
+                          className="flex-1 text-white text-center px-3 py-1.5 rounded-md cursor-pointer bg-[#38365B]"
+                        >
+                          Assign Player
+                        </div>
+                        <div
+                          onClick={markUnsold}
+                          className="flex-1 text-white text-center px-3 py-1.5 rounded-md cursor-pointer bg-red-500"
+                        >
+                          Mark Unsold
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -232,12 +511,14 @@ const Players = () => {
             </div>
           </div>
 
-          <div className="">
+          <div className="space-y-3">
             {players.map((player) => (
               <div
                 key={player._id}
                 onClick={() => setSelectedPlayer(player)}
-                className="relative flex justify-between rounded-2xl pt-3 px-5 bg-[#38365B]"
+                className={`relative flex justify-between rounded-2xl px-5 bg-[#38365B] ${
+                  openActionDropdown === player._id ? "z-50" : "z-0"
+                }`}
               >
                 <div
                   className="absolute inset-0 opacity-50"
@@ -247,56 +528,89 @@ const Players = () => {
                     backgroundSize: "30px 30px",
                   }}
                 ></div>
-                <div className="flex space-x-5">
+                <div className="flex space-x-5 pt-2">
                   <div className="relative">
                     <img
                       src={player.image}
                       alt=""
-                      className="relative w-34 h-34 object-contain z-10"
+                      className="relative w-20 h-20 object-contain z-10"
                     />
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2  w-33 h-33 bg-[#E2D284] rounded-full"></div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2  w-20 h-20 bg-[#E2D284] rounded-full"></div>
                   </div>
                   <div className="flex flex-col justify-between pb-3">
                     <div className="">
                       <div className="flex items-center gap-5">
-                        <h2 className="font-bold text-2xl text-[#E2D284]">
+                        <h2 className="font-bold text-xl text-[#E2D284]">
                           {player.name}
                         </h2>
-                        <div className="flex items-center gap-1">
-                          <img
-                            src={rating}
-                            alt=""
-                            className="w-6 h-6 object-contain mb-1"
-                          />
-                          <p className="font-semibold text-lg text-[#E2D284]">
-                            {player.rating}
-                          </p>
-                        </div>
                       </div>
-                      <p className="font-medium text-lg text-white">
-                        {player.country}
-                      </p>
+                      <p className="font-medium text-white">{player.country}</p>
                     </div>
-                    <h2 className="font-medium text-lg text-gray-300">
-                      {player.role}
-                    </h2>
                   </div>
                 </div>
-                <img
-                  src={
-                    player.status === "sold"
-                      ? sold
-                      : player.status === "unsold"
-                        ? unsold
-                        : available
-                  }
-                  alt=""
-                  className="w-25 h-25 object-contain bg-white rounded-full my-auto"
-                />
+                <div className="flex items-center gap-8">
+                  <img
+                    src={
+                      player.status === "sold"
+                        ? sold
+                        : player.status === "unsold"
+                          ? unsold
+                          : available
+                    }
+                    alt=""
+                    className="w-16 h-16 object-contain bg-white rounded-full my-auto"
+                  />
+
+                  <div className="relative">
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenActionDropdown(
+                          openActionDropdown === player._id ? null : player._id,
+                        );
+                      }}
+                      className="bg-white rounded-md p-1 hover:bg-gray-200 cursor-pointer"
+                    >
+                      <img className="w-4" src={more} alt="" />
+                    </div>
+
+                    {openActionDropdown === player._id && (
+                      <div className="absolute right-0 top-8 w-28 border border-gray-300 bg-white rounded-xl shadow-md z-10">
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // edit logic later
+                            toast("Edit feature coming soon");
+                            setOpenActionDropdown(null);
+                          }}
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        >
+                          Edit
+                        </div>
+
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deletePlayer(player._id);
+                            setOpenActionDropdown(null);
+                          }}
+                          className="px-4 py-2 hover:bg-red-100 text-red-600 cursor-pointer"
+                        >
+                          Delete
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             ))}
           </div>
         </div>
+        <AddPlayerModal
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          refreshPlayers={fetchPlayers}
+        />
       </div>
     </>
   );
