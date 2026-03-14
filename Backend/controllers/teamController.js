@@ -216,3 +216,34 @@ export const removePlayerFromTeam = async (req, res) => {
     });
   }
 };
+
+export const resetAuction = async (req, res) => {
+  try {
+
+    await Player.updateMany(
+      {},
+      {
+        status: "available",
+        soldTo: null,
+        soldPrice: 0
+      }
+    );
+
+    await Team.updateMany(
+      {},
+      {
+        players: [],
+        spent: 0
+      }
+    );
+
+    res.json({
+      message: "Auction reset successfully!"
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};

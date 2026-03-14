@@ -149,6 +149,30 @@ const Players = () => {
     }
   };
 
+  const resetAuction = async () => {
+  try {
+
+    await axios.post(
+      "http://localhost:5000/teams/reset-auction",
+      {},
+      { withCredentials: true }
+    );
+
+    toast.success("Auction reset successfully!");
+
+    setSelectedPlayer(null);
+    setSelectedTeam(null);
+    setBidAmount("");
+
+    fetchPlayers();
+    fetchTeams();
+
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Reset failed");
+  }
+};
+
+
   useEffect(() => {
     fetchTeams();
   }, []);
@@ -188,16 +212,23 @@ const Players = () => {
   return (
     <>
       <div className="w-full min-h-screen flex justify-center py-10 bg-black">
-        <div className="w-full max-w-6xl h-full space-y-8">
-          <div className="flex">
+        <div className="w-full max-w-85 sm:max-w-150 md:max-w-180 lg:max-w-240 xl:max-w-300 h-full space-y-8">
+          <div className="flex justify-end gap-5">
             <div
               onClick={() => setShowAddModal(true)}
-              className="w-fit px-5 py-1.5 rounded-md cursor-pointer text-white bg-[#38365B] ml-auto"
+              className="w-fit px-5 py-1.5 rounded-md cursor-pointer text-white bg-[#38365B]"
             >
               + Add Player
             </div>
+
+            <div
+              onClick={resetAuction}
+              className="w-fit px-5 py-1.5 rounded-md cursor-pointer text-white bg-red-500"
+            >
+              Reset Auction
+            </div>
           </div>
-          <div className="flex gap-5">
+          <div className="flex flex-col md:flex-row gap-5">
             <div className="flex-1 border border-gray-800 rounded-md p-3 space-y-3">
               <h2 className="font-bold text-xl text-white">Player Details</h2>
 
@@ -208,7 +239,7 @@ const Players = () => {
               )}
 
               {selectedPlayer && (
-                <div className="relative flex flex-col justify-between gap-5 rounded-md py-3 px-5 text-white bg-[#38365B]">
+                <div className="relative flex flex-col justify-between gap-5 rounded-md py-2 sm:py-3 md:py-2 lg:py-3 px-2 sm:px-5 md:px-2 lg:px-5 text-white bg-[#38365B]">
                   <div
                     className="absolute inset-0 opacity-50"
                     style={{
@@ -223,25 +254,25 @@ const Players = () => {
                       <img
                         src={selectedPlayer.image}
                         alt=""
-                        className="relative w-34 h-34 object-contain z-10"
+                        className="relative w-22 h-22 sm:w-28 sm:h-28 md:w-22 md:h-22 lg:w-28 lg:h-28 xl:w-34 xl:h-34 object-contain z-10"
                       />
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2  w-33 h-33 bg-[#E2D284] rounded-full"></div>
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-21 sm:w-27 h-21 sm:h-27 md:w-21 md:h-21 lg:w-27 lg:h-27 xl:w-33 xl:h-33 bg-[#E2D284] rounded-full"></div>
                     </div>
 
-                    <div className="py-3 px-5">
-                      <h2 className="font-bold text-2xl text-[#E2D284]">
+                    <div className="py-3 px-2 sm:px-5">
+                      <h2 className="font-bold text-base sm:text-xl md:text-lg lg:text-xl xl:text-2xl text-[#E2D284]">
                         {selectedPlayer.name}
                       </h2>
-                      <h2 className="font-medium text-lg text-white">
+                      <h2 className="font-medium text-sm sm:text-base md:text-sm lg:text-base xl:text-lg text-white">
                         {selectedPlayer.country}
                       </h2>
                       <div className="flex items-center gap-1 mt-2">
                         <img
                           src={rating}
                           alt=""
-                          className="w-6 h-6 object-contain mb-1"
+                          className="w-4 h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6 object-contain mb-1"
                         />
-                        <p className="font-semibold text-lg text-[#E2D284]">
+                        <p className="font-semibold text-sm lg:text-base xl:text-lg text-[#E2D284]">
                           {selectedPlayer.rating}
                         </p>
                       </div>
@@ -270,7 +301,7 @@ const Players = () => {
                             : available
                       }
                       alt=""
-                      className="absolute top-5 right-5 w-20 h-20 object-contain bg-white rounded-full my-auto"
+                      className="absolute top-5 right-5 w-12 h-12 sm:w-16 sm:h-16 md:w-12 md:h-12 lg:w-16 lg:h-16 xl:w-20 xl:h-20 object-contain bg-white rounded-full my-auto"
                     />
                   </div>
                 </div>
@@ -392,8 +423,9 @@ const Players = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-5">
-            <div className="w-110 flex items-center gap-4 bg-white border border-gray-300 px-3 py-1.5 rounded-full">
+          <div className="flex flex-col md:flex-row md:items-center gap-3 lg:gap-5">
+            {/* Search */}
+            <div className="w-full md:w-110 flex items-center gap-4 bg-white border border-gray-300 px-3 py-1.5 rounded-full">
               <img className="w-6" src={search} alt="" />
               <input
                 className="w-full outline-none"
@@ -403,111 +435,124 @@ const Players = () => {
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
-            {/* Status Dropdown */}
-            <div className="relative flex items-center gap-2" ref={statusRef}>
-              <p className="text-white">Status:</p>
-              <div
-                onClick={() =>
-                  setOpenDropdown(openDropdown === "status" ? null : "status")
-                }
-                className="flex items-center justify-between w-34 px-4 py-1.5 bg-white border border-gray-300 rounded-md cursor-pointer capitalize"
-              >
-                {status}
-                <img
-                  className={`w-4 h-4 transition-all duration-200 ${openDropdown === "status" ? "rotate-180" : ""}`}
-                  src={dropdown}
-                  alt=""
-                />
-              </div>
-              {openDropdown === "status" && (
-                <div className="absolute top-12 left-15 w-40 border border-gray-300 bg-white rounded-xl shadow-md z-10">
-                  {statuses.map((s) => (
-                    <div
-                      key={s}
-                      onClick={() => {
-                        setStatus(s);
-                        setOpenDropdown(null);
-                      }}
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer capitalize"
-                    >
-                      {s}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
 
-            {/* Role Dropdown */}
-            <div className="relative flex items-center gap-2" ref={roleRef}>
-              <p className="text-white">Role:</p>
+            {/* Filters Container */}
+            <div className="flex items-center gap-3 lg:gap-5">
+              {/* Status Dropdown */}
               <div
-                onClick={() =>
-                  setOpenDropdown(openDropdown === "role" ? null : "role")
-                }
-                className="flex items-center justify-between w-46 px-4 py-1.5 bg-white border border-gray-300 rounded-md cursor-pointer capitalize"
+                className="relative flex items-center gap-2 text-sm lg:text-base"
+                ref={statusRef}
               >
-                {role}
-                <img
-                  className={`w-4 h-4 transition-all duration-200 ${openDropdown === "role" ? "rotate-180" : ""}`}
-                  src={dropdown}
-                  alt=""
-                />
-              </div>
-              {openDropdown === "role" && (
-                <div className="absolute top-12 left-11 w-50 border border-gray-300 bg-white rounded-xl shadow-md z-10">
-                  {roles.map((r) => (
-                    <div
-                      key={r}
-                      onClick={() => {
-                        setRole(r);
-                        setOpenDropdown(null);
-                      }}
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer capitalize"
-                    >
-                      {r}
-                    </div>
-                  ))}
+                <p className="text-white">Status:</p>
+                <div
+                  onClick={() =>
+                    setOpenDropdown(openDropdown === "status" ? null : "status")
+                  }
+                  className="flex items-center justify-between w-25 lg:w-30 xl:w-34 px-2 lg:px-4 py-1.5 bg-white border border-gray-300 rounded-md cursor-pointer capitalize"
+                >
+                  {status}
+                  <img
+                    className={`w-4 h-4 transition-all duration-200 ${openDropdown === "status" ? "rotate-180" : ""}`}
+                    src={dropdown}
+                    alt=""
+                  />
                 </div>
-              )}
-            </div>
 
-            {/* Nationality Dropdown */}
-            <div
-              className="relative flex items-center gap-2"
-              ref={nationalityRef}
-            >
-              <p className="text-white">Nationality:</p>
-              <div
-                onClick={() =>
-                  setOpenDropdown(
-                    openDropdown === "nationality" ? null : "nationality",
-                  )
-                }
-                className="flex items-center justify-between w-34 px-4 py-1.5 bg-white border border-gray-300 rounded-md cursor-pointer capitalize"
-              >
-                {nationality}
-                <img
-                  className={`w-4 h-4 transition-all duration-200 ${openDropdown === "nationality" ? "rotate-180" : ""}`}
-                  src={dropdown}
-                  alt=""
-                />
+                {openDropdown === "status" && (
+                  <div className="absolute top-12 left-0 w-25 lg:w-30 xl:w-40 border border-gray-300 bg-white rounded-xl shadow-md z-10">
+                    {statuses.map((s) => (
+                      <div
+                        key={s}
+                        onClick={() => {
+                          setStatus(s);
+                          setOpenDropdown(null);
+                        }}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer capitalize"
+                      >
+                        {s}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              {openDropdown === "nationality" && (
-                <div className="absolute top-12 left-24 w-40 border border-gray-300 bg-white rounded-xl shadow-md z-10">
-                  {nationalities.map((n) => (
-                    <div
-                      key={n}
-                      onClick={() => {
-                        setNationality(n);
-                        setOpenDropdown(null);
-                      }}
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer capitalize"
-                    >
-                      {n}
-                    </div>
-                  ))}
+
+              {/* Role Dropdown */}
+              <div
+                className="relative flex items-center gap-2 text-sm lg:text-base"
+                ref={roleRef}
+              >
+                <p className="text-white">Role:</p>
+                <div
+                  onClick={() =>
+                    setOpenDropdown(openDropdown === "role" ? null : "role")
+                  }
+                  className="flex items-center justify-between w-35 lg:w-45 xl:w-46 px-2 lg:px-4 py-1.5 bg-white border border-gray-300 rounded-md cursor-pointer capitalize truncate"
+                >
+                  {role}
+                  <img
+                    className={`w-4 h-4 transition-all duration-200 ${openDropdown === "role" ? "rotate-180" : ""}`}
+                    src={dropdown}
+                    alt=""
+                  />
                 </div>
-              )}
+
+                {openDropdown === "role" && (
+                  <div className="absolute top-12 left-0 w-35 lg:w-45 xl:w-50 border border-gray-300 bg-white rounded-xl shadow-md z-10">
+                    {roles.map((r) => (
+                      <div
+                        key={r}
+                        onClick={() => {
+                          setRole(r);
+                          setOpenDropdown(null);
+                        }}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer capitalize"
+                      >
+                        {r}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Nationality Dropdown */}
+              <div
+                className="relative flex items-center gap-2 text-sm lg:text-base"
+                ref={nationalityRef}
+              >
+                <p className="text-white">Nationality:</p>
+                <div
+                  onClick={() =>
+                    setOpenDropdown(
+                      openDropdown === "nationality" ? null : "nationality",
+                    )
+                  }
+                  className="flex items-center justify-between w-25 lg:w-30 xl:w-34 px-2 lg:px-4 py-1.5 bg-white border border-gray-300 rounded-md cursor-pointer capitalize"
+                >
+                  {nationality}
+                  <img
+                    className={`w-4 h-4 transition-all duration-200 ${openDropdown === "nationality" ? "rotate-180" : ""}`}
+                    src={dropdown}
+                    alt=""
+                  />
+                </div>
+
+                {openDropdown === "nationality" && (
+                  <div className="absolute top-12 left-0 w-25 lg:w-30 xl:w-40 border border-gray-300 bg-white rounded-xl shadow-md z-10">
+                    {nationalities.map((n) => (
+                      <div
+                        key={n}
+                        onClick={() => {
+                          setNationality(n);
+                          setOpenDropdown(null);
+                        }}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer capitalize"
+                      >
+                        {n}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -569,13 +614,13 @@ const Players = () => {
                           openActionDropdown === player._id ? null : player._id,
                         );
                       }}
-                      className="bg-white rounded-md p-1 hover:bg-gray-200 cursor-pointer"
+                      className="rounded-full p-2 hover:bg-white/20 cursor-pointer"
                     >
-                      <img className="w-4" src={more} alt="" />
+                      <img className="w-4 rotate-90" src={more} alt="" />
                     </div>
 
                     {openActionDropdown === player._id && (
-                      <div className="absolute right-0 top-8 w-28 border border-gray-300 bg-white rounded-xl shadow-md z-10">
+                      <div className="absolute right-0 top-10 w-28 border border-gray-300 bg-white rounded-xl shadow-md z-10">
                         <div
                           onClick={(e) => {
                             e.stopPropagation();
