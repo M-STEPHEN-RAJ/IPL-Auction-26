@@ -30,7 +30,36 @@ export const getTeams = async (req, res) => {
   try {
     const teams = await Team.find().populate("players");
 
-    res.json(teams);
+    const result = teams.map((team) => {
+
+      const totalPlayers = team.players.length;
+
+      const foreignPlayers = team.players.filter(
+        (p) => p.country !== "India"
+      ).length;
+
+      const ratingSum = team.players.reduce(
+        (sum, p) => sum + (p.rating || 0),
+        0
+      );
+
+      const avgRating = totalPlayers ? (ratingSum / 13).toFixed(2) : 0;
+
+      const remaining = team.totalPurse - team.spent;
+
+      return {
+        _id: team._id,
+        name: team.name,
+        avgRating,
+        spent: team.spent,
+        remaining,
+        totalPlayers,
+        foreignPlayers
+      };
+    });
+
+    res.json(result);
+
   } catch (error) {
     res.status(500).json({
       message: error.message,
