@@ -4,6 +4,7 @@ import axios from "axios";
 import rating from "../../assets/rating.png";
 import players from "../../assets/players.png";
 import foreign from "../../assets/foreign.png";
+import BASE_URL from "../../utils/api";
 
 const Teams = () => {
   // const navigate = useNavigate();
@@ -13,7 +14,7 @@ const Teams = () => {
 
   const fetchTeams = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/teams");
+      const res = await axios.get(`${BASE_URL}/teams`);
       setTeams(res.data);
     } catch (error) {
       console.error("Error fetching teams:", error);
@@ -30,7 +31,7 @@ const Teams = () => {
     <>
       {loading ? (
         <div className="w-full min-h-screen flex justify-center items-center bg-black text-white">
-          Loading teams...
+          <div className="w-12 h-12 border-4 border-[#38365B] border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : (
         <div className="w-full flex justify-center py-10 bg-black">
@@ -59,7 +60,7 @@ const Teams = () => {
                     <img
                       src={rating}
                       alt=""
-                      className="w-5 sm:w-6 md:w-7 h-5 sm-h-6 md:h-7 object-contain mb-1"
+                      className="w-5 sm:w-6 md:w-7 h-5 sm:h-6 md:h-7 object-contain mb-1"
                     />
                     <p className="font-semibold text-base sm:text-lg md:text-2xl text-[#E2D284]">
                       {team.avgRating}

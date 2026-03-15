@@ -4,6 +4,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import logo from "../../assets/logo.png";
 import login_bg from "../../assets/login-bg.png";
+import BASE_URL from "../../utils/api";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const Login = () => {
       setLoading(true);
 
       const res = await axios.post(
-        "http://localhost:5000/admin/login",
+        `${BASE_URL}/admin/login`,
         { email, password },
         { withCredentials: true },
       );

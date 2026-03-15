@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import BASE_URL from '../utils/api'
 
 const AddPlayerModal = ({ isOpen, onClose, refreshPlayers }) => {
 
@@ -29,7 +30,7 @@ const AddPlayerModal = ({ isOpen, onClose, refreshPlayers }) => {
     try {
 
       await axios.post(
-        "http://localhost:5000/players/add",
+        `${BASE_URL}/players/add`,
         form,
         { withCredentials: true }
       );

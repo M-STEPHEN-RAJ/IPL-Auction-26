@@ -13,6 +13,7 @@ import sold from "../../assets/sold.png";
 import unsold from "../../assets/unsold.png";
 import available from "../../assets/available.png";
 import more from "../../assets/more.png";
+import BASE_URL from '../../utils/api'
 
 const Players = () => {
   const [players, setPlayers] = useState([]);
@@ -39,7 +40,7 @@ const Players = () => {
 
   const fetchPlayers = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/players", {
+      const res = await axios.get(`${BASE_URL}/players`, {
         params: { name, status, role, nationality },
       });
       setPlayers(res.data);
@@ -52,7 +53,7 @@ const Players = () => {
 
   const refreshSelectedPlayer = async (playerId) => {
     try {
-      const res = await axios.get(`http://localhost:5000/players/${playerId}`);
+      const res = await axios.get(`${BASE_URL}/players/${playerId}`);
       setSelectedPlayer(res.data);
     } catch (err) {
       console.error("Error refreshing player:", err);
@@ -61,7 +62,7 @@ const Players = () => {
 
   const fetchTeams = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/teams");
+      const res = await axios.get(`${BASE_URL}/teams`);
       setTeams(res.data);
     } catch (err) {
       console.error(err);
@@ -81,7 +82,7 @@ const Players = () => {
 
     try {
       await axios.post(
-        "http://localhost:5000/teams/buy-player",
+        `${BASE_URL}/teams/buy-player`,
         {
           playerId: selectedPlayer._id,
           teamId: selectedTeam._id,
@@ -107,7 +108,7 @@ const Players = () => {
   const markUnsold = async () => {
     try {
       await axios.post(
-        "http://localhost:5000/teams/unsold-player",
+        `${BASE_URL}/teams/unsold-player`,
         { playerId: selectedPlayer._id },
         { withCredentials: true },
       );
@@ -124,7 +125,7 @@ const Players = () => {
 
   const deletePlayer = async (playerId) => {
     try {
-      await axios.delete(`http://localhost:5000/players/${playerId}`, {
+      await axios.delete(`${BASE_URL}/players/${playerId}`, {
         withCredentials: true,
       });
 
@@ -139,7 +140,7 @@ const Players = () => {
   const removePlayer = async () => {
     try {
       await axios.post(
-        "http://localhost:5000/teams/remove-player",
+        `${BASE_URL}/teams/remove-player`,
         { playerId: selectedPlayer._id },
         { withCredentials: true },
       );
@@ -157,7 +158,7 @@ const Players = () => {
   const resetAuction = async () => {
     try {
       await axios.post(
-        "http://localhost:5000/teams/reset-auction",
+        `${BASE_URL}/teams/reset-auction`,
         {},
         { withCredentials: true },
       );
@@ -211,14 +212,14 @@ const Players = () => {
     <>
       {loading ? (
         <div className="w-full min-h-screen flex justify-center items-center bg-black text-white">
-          Loading players...
+          <div className="w-12 h-12 border-4 border-[#38365B] border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : (
         <div className="w-full min-h-screen flex justify-center pt-5 pb-20 bg-black">
           <div className="w-full max-w-85 sm:max-w-150 md:max-w-180 lg:max-w-240 xl:max-w-300 h-full space-y-8">
             <div className="flex justify-end gap-5">
               <div
-                onClick={() => setShowAddModal(true)}
+                // onClick={() => setShowAddModal(true)}
                 className="w-fit px-3 sm:px-5 py-1 sm:py-1.5 text-sm sm:text-base rounded-md cursor-pointer text-white bg-[#38365B]"
               >
                 + Add Player
