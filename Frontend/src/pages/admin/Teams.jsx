@@ -5,7 +5,6 @@ import players from "../../assets/players.png";
 import foreign from "../../assets/foreign.png";
 
 const Teams = () => {
-
   const navigate = useNavigate();
 
   const [teams, setTeams] = useState([]);
@@ -43,21 +42,21 @@ const Teams = () => {
 
   return (
     <>
-      <div className="w-full min-h-screen flex justify-center py-10 bg-black">
-        <div className="w-full max-w-6xl h-full space-y-3">
+      <div className="w-full flex justify-center py-10 bg-black">
+        <div className="w-full max-w-85 sm:max-w-150 md:max-w-180 lg:max-w-240 xl:max-w-300 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 px-4">
           {teams.map((team) => (
             <div
               key={team._id}
               onClick={() => navigate(`/admin/team/${team._id}`)}
               style={{
-  background: `linear-gradient(
+                background: `linear-gradient(
     to top left,
     #ffffff -200%,
     ${teamColors[team.name]?.primary} 40%,
     #ffffff 200%
-  )`
-}}
-              className="relative flex justify-between items-center h-20 px-8 py-5 rounded-md"
+  )`,
+              }}
+              className="relative flex flex-col justify-between h-30 px-4 py-3 rounded-md"
             >
               <div
                 className="absolute inset-0 opacity-40"
@@ -75,20 +74,27 @@ const Teams = () => {
               >
                 {team.name}
               </h2>
-              <div className="flex items-center gap-8">
-                <p className="text-white font-semibold text-xl">₹ {team.totalPurse / 100} Cr</p>
-                <div className="flex items-center gap-2">
-                  <img className="w-8" src={players} alt="" />
+              <div className="w-full flex flex-col items-center justify-between">
+                <div className="w-full flex justify-between">
                   <p className="text-white font-semibold text-xl">
-                    {team.players.length} / {team.maxPlayers}
+                    ₹ {team.totalPurse / 100} Cr
                   </p>
+                  <p className="text-white font-semibold text-xl">₹ spent Cr</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <img className="w-8" src={foreign} alt="" />
-                  <p className="text-white font-semibold text-xl">
-                    {team.players.filter((p) => p.isIndian === false).length} /
-                    5
-                  </p>
+                <div className="w-full flex justify-between">
+                  <div className="flex items-center gap-2">
+                    <img className="w-8" src={players} alt="" />
+                    <p className="text-white font-semibold text-xl">
+                      {team.players.length} / {team.maxPlayers}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <img className="w-8" src={foreign} alt="" />
+                    <p className="text-white font-semibold text-xl">
+                      {team.players.filter((p) => p.isIndian === false).length}{" "}
+                      / 5
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

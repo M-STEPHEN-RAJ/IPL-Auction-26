@@ -46,7 +46,7 @@ const Login = () => {
     <>
       <div className="flex w-screen h-screen overflow-hidden">
         {/* Left Theme */}
-        <div className="relative w-1/2 h-full bg-[#38365B]">
+        <div className="relative hidden lg:block lg:w-1/2 h-full bg-[#38365B]">
           <div
             className="absolute inset-0 opacity-50"
             style={{
@@ -75,8 +75,9 @@ const Login = () => {
         </div>
 
         {/* Right Side */}
-        <div className=" bg-black w-1/2 h-full flex flex-col justify-center items-center">
-          <div className="space-y-10 min-w-112.5">
+        <div className=" bg-black w-1/2 h-full flex flex-col justify-center items-center mx-auto">
+          <div className="space-y-10 min-w-80 sm:min-w-120 lg:min-w-100 xl:min-w-112.5">
+            <img className="mx-auto w-35 sm:w-45 h-35 sm:h-45 lg:hidden" src={logo} alt="" />
             <div className="">
               <h2 className="text-2xl font-semibold text-white">Welcome Back!</h2>
             </div>
