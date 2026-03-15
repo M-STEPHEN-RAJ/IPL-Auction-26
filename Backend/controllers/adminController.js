@@ -45,8 +45,8 @@ export const loginAdmin = async (req, res) => {
 
     res.cookie("adminToken", token, {
       httpOnly: true,
-      secure: false, 
-      sameSite: "strict",
+      secure: true, 
+      sameSite: "None",
       maxAge: 24 * 60 * 60 * 1000
     });
 
@@ -58,7 +58,11 @@ export const loginAdmin = async (req, res) => {
 };
 
 export const logoutAdmin = (req, res) => {
-  res.clearCookie("adminToken");
+  res.clearCookie("adminToken", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None"
+  });
 
   res.json({
     message: "Logged out successfully!",
