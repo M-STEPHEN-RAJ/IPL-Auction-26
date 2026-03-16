@@ -8,7 +8,7 @@ const Navbar = () => {
 
   const isAdmin = location.pathname.startsWith("/admin");
 
-  const playersRoute = isAdmin ? "/admin/players" : "/players";
+  const playersRoute = isAdmin ? "/admin/players" : "/";
   const teamsRoute = isAdmin ? "/admin/teams" : "/teams";
   return (
     <>
@@ -21,17 +21,21 @@ const Navbar = () => {
             </h2>
           </div>
           <div className="absolute left-1/2 -translate-x-1/2 flex gap-8 sm:gap-12 text-white sm:text-lg font-medium">
-            <p
-              className="hover:text-[#7f7da5] cursor-pointer"
+            <button
+              className="hover:text-[#7f7da5] cursor-pointer select-none"
               onClick={() => navigate(playersRoute)}
             >
               Players
-            </p>
-            <p className="hover:text-[#7f7da5] cursor-pointer" onClick={() => navigate(teamsRoute)}>
+            </button>
+
+            <button
+              className="hover:text-[#7f7da5] cursor-pointer select-none"
+              onClick={() => navigate(teamsRoute)}
+            >
               Teams
-            </p>
+            </button>
           </div>
-          <div className="">
+          <div onClick={() => navigate('/admin/login')} className="">
             <img
               className="w-8 h-8 rounded-full cursor-pointer"
               src="https://res.cloudinary.com/dt4ldt3x6/image/upload/v1758953629/PlanIt/iniudgs6d7aehxxit6qx.png"

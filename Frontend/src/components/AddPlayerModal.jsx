@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import BASE_URL from '../utils/api'
+import BASE_URL from "../utils/api";
+import dropdownIcon from "../assets/dropdown.png";
+
+const roles = ["Batsman", "Bowler", "All-Rounder", "Wicket-Keeper"];
 
 const AddPlayerModal = ({ isOpen, onClose, refreshPlayers }) => {
-
   const [form, setForm] = useState({
     name: "",
     country: "",
@@ -12,123 +14,239 @@ const AddPlayerModal = ({ isOpen, onClose, refreshPlayers }) => {
     role: "Batsman",
     basePrice: "",
     image: "",
-    rating: ""
+    rating: "",
   });
+
+  const [saving, setSaving] = useState(false);
+  const [roleOpen, setRoleOpen] = useState(false);
+
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setRoleOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   if (!isOpen) return null;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
+    if (name === "country") {
+      const lower = value.trim().toLowerCase();
+
+      const isIndianPlayer = lower === "india" || lower === "ind";
+
+      setForm({
+        ...form,
+        country: value,
+        isIndian: isIndianPlayer,
+      });
+
+      return;
+    }
+
     setForm({
       ...form,
-      [name]: name === "isIndian" ? value === "true" : value
+      [name]: value,
     });
   };
 
-  const handleSubmit = async () => {
-    try {
+  const selectRole = (role) => {
+    setForm({
+      ...form,
+      role: role,
+    });
 
-      await axios.post(
-        `${BASE_URL}/players/add`,
-        form,
-        { withCredentials: true }
-      );
+    setRoleOpen(false);
+  };
+
+  const handleSubmit = async () => {
+    const { name, country, role, basePrice, image, rating } = form;
+
+    if (!name || !country || !role || !basePrice || !image || rating === "") {
+      toast.error("Please fill all fields!");
+      return;
+    }
+
+    if (Number(rating) < 0 || Number(rating) > 10) {
+      toast.error("Invalid Rating!");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      await axios.post(`${BASE_URL}/players/add`, form, {
+        withCredentials: true,
+      });
 
       toast.success("Player added successfully");
 
       refreshPlayers();
       onClose();
-
     } catch (err) {
       toast.error(err.response?.data?.message || "Error adding player");
+    } finally {
+      setSaving(false);
     }
   };
 
+  const resetForm = () => {
+  setForm({
+    name: "",
+    country: "",
+    isIndian: true,
+    role: "Batsman",
+    basePrice: "",
+    image: "",
+    rating: "",
+  });
+  setRoleOpen(false);
+};
+
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-3 sm:px-0">
+      <div className="bg-white px-6 py-5 rounded-xl w-full max-w-lg space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Add Player</h3>
 
-      <div className="bg-white rounded-xl p-6 w-96 space-y-4">
+          <div
+            onClick={() => { resetForm(); onClose(); }}
+            className="w-7 h-7 flex items-center justify-center hover:bg-gray-100 rounded-full cursor-pointer"
+          >
+            ✕
+          </div>
+        </div>
 
-        <h2 className="text-xl font-bold">Add Player</h2>
+        {form.image && (
+          <div className="flex justify-center">
+            <img
+              src={form.image}
+              alt="player"
+              className="w-30 h-30 object-cover"
+              onError={(e) => (e.target.style.display = "none")}
+            />
+          </div>
+        )}
 
-        <input
-          name="name"
-          placeholder="Player Name"
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1">
+            <label className="text-gray-500 text-sm">Player Name</label>
+            <input
+              name="name"
+              onChange={handleChange}
+              className="px-2 py-1 border border-gray-300 rounded-md outline-none"
+            />
+          </div>
 
-        <input
-          name="country"
-          placeholder="Country"
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        />
+          <div className="flex flex-col gap-1">
+            <label className="text-gray-500 text-sm">Country</label>
+            <input
+              name="country"
+              onChange={handleChange}
+              className="px-2 py-1 border border-gray-300 rounded-md outline-none"
+            />
 
-        <select
-          name="isIndian"
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        >
-          <option value="true">Indian</option>
-          <option value="false">Foreign</option>
-        </select>
+            <span
+              className={`text-xs font-medium ${
+                form.isIndian ? "text-green-600" : "text-red-500"
+              }`}
+            >
+              {form.isIndian ? "Indian Player" : "Foreign Player"}
+            </span>
+          </div>
 
-        <select
-          name="role"
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        >
-          <option>Batsman</option>
-          <option>Bowler</option>
-          <option>All-Rounder</option>
-          <option>Wicket-Keeper</option>
-        </select>
+          <div className="flex flex-col gap-1 relative" ref={dropdownRef}>
+            <label className="text-gray-500 text-sm">Role</label>
 
-        <input
-          name="basePrice"
-          type="number"
-          placeholder="Base Price"
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        />
+            <div
+              onClick={() => setRoleOpen(!roleOpen)}
+              className="px-2 py-1 border border-gray-300 rounded-md cursor-pointer flex justify-between items-center"
+            >
+              {form.role}
 
-        <input
-          name="image"
-          placeholder="Image URL"
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        />
+              <img
+                src={dropdownIcon}
+                alt=""
+                className={`w-4 transition-transform ${
+                  roleOpen ? "rotate-180" : ""
+                }`}
+              />
+            </div>
 
-        <input
-          name="rating"
-          type="number"
-          placeholder="Rating"
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        />
+            {roleOpen && (
+              <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-md shadow-md mt-1 z-20">
+                {roles.map((role) => (
+                  <div
+                    key={role}
+                    onClick={() => selectRole(role)}
+                    className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                  >
+                    {role}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-        <div className="flex justify-end gap-3 pt-2">
+          <div className="flex flex-col gap-1">
+            <label className="text-gray-500 text-sm">Base Price</label>
+            <input
+              name="basePrice"
+              type="number"
+              onChange={handleChange}
+              className="px-2 py-1 border border-gray-300 rounded-md outline-none"
+            />
+          </div>
 
+          <div className="flex flex-col gap-1">
+            <label className="text-gray-500 text-sm">Image URL</label>
+            <input
+              name="image"
+              onChange={handleChange}
+              className="px-2 py-1 border border-gray-300 rounded-md outline-none"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-gray-500 text-sm">Rating</label>
+            <input
+              name="rating"
+              type="number"
+              onChange={handleChange}
+              className="px-2 py-1 border border-gray-300 rounded-md outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 text-sm pt-3">
           <button
-            onClick={onClose}
-            className="px-4 py-1 border rounded"
+            onClick={() => { resetForm(); onClose(); }}
+            className="px-4 py-1.5 border text-[#38365B] border-[#38365B] rounded-md font-medium cursor-pointer"
           >
             Cancel
           </button>
 
           <button
             onClick={handleSubmit}
-            className="px-4 py-1 bg-[#38365B] text-white rounded"
+            disabled={saving}
+            className="px-4 py-1.5 bg-[#38365B] text-white rounded-md flex items-center justify-center disabled:opacity-60 cursor-pointer"
           >
-            Add Player
+            {saving ? (
+              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              "Add Player"
+            )}
           </button>
-
         </div>
-
       </div>
-
     </div>
   );
 };

@@ -13,7 +13,7 @@ import sold from "../../assets/sold.png";
 import unsold from "../../assets/unsold.png";
 import available from "../../assets/available.png";
 import more from "../../assets/more.png";
-import BASE_URL from '../../utils/api'
+import BASE_URL from "../../utils/api";
 
 const Players = () => {
   const [players, setPlayers] = useState([]);
@@ -219,7 +219,7 @@ const Players = () => {
           <div className="w-full max-w-85 sm:max-w-150 md:max-w-180 lg:max-w-240 xl:max-w-300 h-full space-y-8">
             <div className="flex justify-end gap-5">
               <div
-                // onClick={() => setShowAddModal(true)}
+                onClick={() => setShowAddModal(true)}
                 className="w-fit px-3 sm:px-5 py-1 sm:py-1.5 text-sm sm:text-base rounded-md cursor-pointer text-white bg-[#38365B]"
               >
                 + Add Player
@@ -350,7 +350,7 @@ const Players = () => {
                         </div>
 
                         <div
-                          className="w-full text-center text-white px-3 py-2 rounded-md cursor-pointer bg-red-500"
+                          className="w-full text-center text-white px-3 py-2 rounded-md select-none cursor-pointer bg-red-500"
                           onClick={() => removePlayer()}
                         >
                           Remove from {selectedPlayer.soldTo?.name}
@@ -394,7 +394,7 @@ const Players = () => {
                                       setSelectedTeam(team);
                                       setOpenDropdown(null);
                                     }}
-                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-xl"
                                   >
                                     {team.name}
                                   </div>
@@ -417,18 +417,19 @@ const Players = () => {
                         </div>
 
                         <div className="flex gap-3 sm:gap-5 md:gap-3 lg:gap-5 px-1.5 sm:px-3 md:px-1.5 lg:px-3">
-                          <div
+                          <button
                             onClick={assignPlayer}
-                            className="flex-1 text-white text-center px-3 py-1.5 rounded-md cursor-pointer bg-[#38365B] text-sm sm:text-base"
+                            className="flex-1 text-white text-center px-3 py-1.5 rounded-md bg-[#38365B] text-sm sm:text-base select-none cursor-pointer"
                           >
                             Assign Player
-                          </div>
-                          <div
+                          </button>
+
+                          <button
                             onClick={markUnsold}
-                            className="flex-1 text-white text-center px-3 py-1.5 rounded-md cursor-pointer bg-red-500 text-sm sm:text-base"
+                            className="flex-1 text-white text-center px-3 py-1.5 rounded-md bg-red-500 text-sm sm:text-base select-none cursor-pointer"
                           >
                             Mark Unsold
-                          </div>
+                          </button>
                         </div>
                       </>
                     )}
@@ -623,7 +624,7 @@ const Players = () => {
                               toast("Edit feature coming soon");
                               setOpenActionDropdown(null);
                             }}
-                            className="flex items-center gap-1.5  text-sm sm:text-base px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                            className="flex items-center gap-1.5  text-sm sm:text-base px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-xl"
                           >
                             <img className="w-5 h-5" src={edit} alt="" />
                             Edit
@@ -635,7 +636,7 @@ const Players = () => {
                               deletePlayer(player._id);
                               setOpenActionDropdown(null);
                             }}
-                            className="flex items-center gap-1.5 text-sm sm:text-base px-4 py-1.5 sm:py-2 hover:bg-red-100 text-red-600 cursor-pointer"
+                            className="flex items-center gap-1.5 text-sm sm:text-base px-4 py-1.5 sm:py-2 hover:bg-red-100 text-red-600 cursor-pointer rounded-xl"
                           >
                             <img className="w-5 h-5" src={Delete} alt="" />
                             Delete
