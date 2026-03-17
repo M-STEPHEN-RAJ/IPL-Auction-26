@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import socket from "../../socket";
 import search from "../../assets/search.png";
 import filter from "../../assets/filter.png";
 import rating from "../../assets/rating.png";
@@ -34,6 +35,84 @@ const ViewPlayers = () => {
 
   useEffect(() => {
     fetchPlayers();
+
+    socket.on("playerAdded", (newPlayer) => {
+      setPlayers((prev) => [newPlayer, ...prev]);
+    });
+
+    socket.on("playerUpdated", (updatedPlayer) => {
+      setPlayers((prev) =>
+        prev.map((p) => (p._id === updatedPlayer._id ? updatedPlayer : p)),
+      );
+
+      setSelectedPlayer((prev) =>
+        prev?._id === updatedPlayer._id ? updatedPlayer : prev,
+      );
+    });
+
+    socket.on("playerSold", ({ player }) => {
+      setPlayers((prev) =>
+        prev.map((p) => (p._id === player._id ? player : p)),
+      );
+
+      setSelectedPlayer((prev) => (prev?._id === player._id ? player : prev));
+    });
+
+    socket.on("playerUnsold", (player) => {
+      setPlayers((prev) =>
+        prev.map((p) => (p._id === player._id ? player : p)),
+      );
+
+      setSelectedPlayer((prev) => (prev?._id === player._id ? player : prev));
+    });
+
+    socket.on("playerRemoved", ({ player }) => {
+      setPlayers((prev) =>
+        prev.map((p) => (p._id === player._id ? player : p)),
+      );
+
+      setSelectedPlayer((prev) => (prev?._id === player._id ? player : prev));
+    });
+
+    socket.on("playerDeleted", ({ playerId }) => {
+      setPlayers((prev) => prev.filter((p) => p._id !== playerId));
+
+      setSelectedPlayer((prev) => (prev?._id === playerId ? null : prev));
+    });
+
+    socket.on("auctionReset", () => {
+      fetchPlayers();
+      setSelectedPlayer(null);
+    });
+
+    return () => {
+      socket.off("playerAdded");
+      socket.off("playerUpdated");
+      socket.off("playerDeleted");
+      socket.off("auctionReset");
+      socket.off("playerSold");
+      socket.off("playerUnsold");
+      socket.off("playerRemoved");
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    socket.on("playerSold", fetchPlayers);
+    socket.on("playerUnsold", fetchPlayers);
+    socket.on("playerRemoved", fetchPlayers);
+    socket.on("playerDeleted", fetchPlayers);
+    socket.on("playerAdded", fetchPlayers);
+    socket.on("playerUpdated", fetchPlayers);
+
+    return () => {
+      socket.off("playerSold");
+      socket.off("playerUnsold");
+      socket.off("playerRemoved");
+      socket.off("playerDeleted");
+      socket.off("playerAdded");
+      socket.off("playerUpdated");
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name, status, role, nationality]);
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import socket from "../../socket";
 import AddPlayerModal from "../../components/AddPlayerModal";
 import search from "../../assets/search.png";
 import filter from "../../assets/filter.png";
@@ -14,6 +15,7 @@ import unsold from "../../assets/unsold.png";
 import available from "../../assets/available.png";
 import more from "../../assets/more.png";
 import BASE_URL from "../../utils/api";
+import EditPlayerModal from "../../components/EditPlayerModal";
 
 const Players = () => {
   const [players, setPlayers] = useState([]);
@@ -28,6 +30,8 @@ const Players = () => {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [editPlayer, setEditPlayer] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState(null);
@@ -48,15 +52,6 @@ const Players = () => {
       console.error("Error fetching players:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const refreshSelectedPlayer = async (playerId) => {
-    try {
-      const res = await axios.get(`${BASE_URL}/players/${playerId}`);
-      setSelectedPlayer(res.data);
-    } catch (err) {
-      console.error("Error refreshing player:", err);
     }
   };
 
@@ -81,7 +76,7 @@ const Players = () => {
     }
 
     try {
-      await axios.post(
+      const res = await axios.post(
         `${BASE_URL}/teams/buy-player`,
         {
           playerId: selectedPlayer._id,
@@ -93,12 +88,11 @@ const Players = () => {
         },
       );
 
+      setSelectedPlayer(res.data.player);
+
       setSelectedTeam(null);
       setBidAmount("");
-      refreshSelectedPlayer(selectedPlayer._id);
       setOpenDropdown(null);
-
-      fetchPlayers();
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || "Something went wrong!");
@@ -107,17 +101,15 @@ const Players = () => {
 
   const markUnsold = async () => {
     try {
-      await axios.post(
+      const res = await axios.post(
         `${BASE_URL}/teams/unsold-player`,
         { playerId: selectedPlayer._id },
         { withCredentials: true },
       );
 
+      setSelectedPlayer(res.data.player);
+
       toast.success("Player marked as Unsold");
-
-      refreshSelectedPlayer(selectedPlayer._id);
-
-      fetchPlayers();
     } catch (err) {
       toast.error(err.response?.data?.message || "Error marking unsold");
     }
@@ -130,8 +122,6 @@ const Players = () => {
       });
 
       toast.success("Player deleted successfully");
-
-      fetchPlayers();
     } catch (err) {
       toast.error(err.response?.data?.message || "Delete failed");
     }
@@ -139,17 +129,15 @@ const Players = () => {
 
   const removePlayer = async () => {
     try {
-      await axios.post(
+      const res = await axios.post(
         `${BASE_URL}/teams/remove-player`,
         { playerId: selectedPlayer._id },
         { withCredentials: true },
       );
 
+      setSelectedPlayer(res.data.player);
+
       toast.success("Player removed from team");
-
-      refreshSelectedPlayer(selectedPlayer._id);
-
-      fetchPlayers();
     } catch (err) {
       toast.error(err.response?.data?.message || "Error removing player");
     }
@@ -169,7 +157,6 @@ const Players = () => {
       setSelectedTeam(null);
       setBidAmount("");
 
-      fetchPlayers();
       fetchTeams();
     } catch (err) {
       toast.error(err.response?.data?.message || "Reset failed");
@@ -181,7 +168,21 @@ const Players = () => {
   }, []);
 
   useEffect(() => {
-    fetchPlayers();
+    socket.on("playerSold", fetchPlayers);
+    socket.on("playerUnsold", fetchPlayers);
+    socket.on("playerRemoved", fetchPlayers);
+    socket.on("playerDeleted", fetchPlayers);
+    socket.on("playerAdded", fetchPlayers);
+    socket.on("playerUpdated", fetchPlayers);
+
+    return () => {
+      socket.off("playerSold");
+      socket.off("playerUnsold");
+      socket.off("playerRemoved");
+      socket.off("playerDeleted");
+      socket.off("playerAdded");
+      socket.off("playerUpdated");
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name, status, role, nationality]);
 
@@ -202,6 +203,80 @@ const Players = () => {
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    socket.on("playerAdded", (newPlayer) => {
+      setPlayers((prev) => [newPlayer, ...prev]);
+    });
+
+    socket.on("playerDeleted", ({ playerId }) => {
+      setPlayers((prev) => prev.filter((p) => p._id !== playerId));
+
+      if (selectedPlayer?._id === playerId) {
+        setSelectedPlayer(null);
+      }
+    });
+
+    socket.on("playerUpdated", (updatedPlayer) => {
+      setPlayers((prev) =>
+        prev.map((p) => (p._id === updatedPlayer._id ? updatedPlayer : p)),
+      );
+
+      if (selectedPlayer?._id === updatedPlayer._id) {
+        setSelectedPlayer(updatedPlayer);
+      }
+    });
+
+    socket.on("playerSold", ({ player }) => {
+      setPlayers((prev) =>
+        prev.map((p) => (p._id === player._id ? player : p)),
+      );
+
+      if (selectedPlayer?._id === player._id) {
+        setSelectedPlayer(player);
+      }
+    });
+
+    socket.on("playerUnsold", (player) => {
+      setPlayers((prev) =>
+        prev.map((p) => (p._id === player._id ? player : p)),
+      );
+
+      if (selectedPlayer?._id === player._id) {
+        setSelectedPlayer(player);
+      }
+    });
+
+    socket.on("playerRemoved", ({ player }) => {
+      setPlayers((prev) =>
+        prev.map((p) => (p._id === player._id ? player : p)),
+      );
+
+      setSelectedPlayer((prev) => (prev?._id === player._id ? player : prev));
+    });
+
+    socket.on("auctionReset", () => {
+      fetchPlayers();
+      fetchTeams();
+      setSelectedPlayer(null);
+    });
+
+    return () => {
+      socket.off("playerAdded");
+      socket.off("playerDeleted");
+      socket.off("playerUpdated");
+      socket.off("playerSold");
+      socket.off("playerUnsold");
+      socket.off("playerRemoved");
+      socket.off("auctionReset");
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    fetchPlayers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const statuses = ["all", "sold", "unsold", "available"];
@@ -549,7 +624,11 @@ const Players = () => {
               {players.map((player) => (
                 <div
                   key={player._id}
-                  onClick={() => setSelectedPlayer(player)}
+                  onClick={() => {
+                    setSelectedPlayer(player);
+                    setSelectedTeam(null);
+                    setBidAmount("");
+                  }}
                   className={`relative flex justify-between rounded-2xl px-3 sm:px-5 bg-[#38365B] ${
                     openActionDropdown === player._id ? "z-50" : "z-0"
                   }`}
@@ -621,8 +700,10 @@ const Players = () => {
                           <div
                             onClick={(e) => {
                               e.stopPropagation();
-                              toast("Edit feature coming soon");
+                              setEditPlayer(player);
+                              setShowEditModal(true);
                               setOpenActionDropdown(null);
+                              setSelectedPlayer(player);
                             }}
                             className="flex items-center gap-1.5  text-sm sm:text-base px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-xl"
                           >
@@ -653,6 +734,16 @@ const Players = () => {
             isOpen={showAddModal}
             onClose={() => setShowAddModal(false)}
             refreshPlayers={fetchPlayers}
+          />
+
+          <EditPlayerModal
+            isOpen={showEditModal}
+            onClose={() => {
+              setShowEditModal(false);
+              setEditPlayer(null);
+            }}
+            refreshPlayers={fetchPlayers}
+            player={editPlayer}
           />
         </div>
       )}

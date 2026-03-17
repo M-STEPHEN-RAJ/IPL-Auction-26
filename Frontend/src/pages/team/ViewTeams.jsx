@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 // import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import socket from "../../socket";
 import rating from "../../assets/rating.png";
 import players from "../../assets/players.png";
 import foreign from "../../assets/foreign.png";
@@ -25,6 +26,16 @@ const ViewTeams = () => {
 
   useEffect(() => {
     fetchTeams();
+
+    socket.on("playerSold", fetchTeams);
+    socket.on("playerRemoved", fetchTeams);
+    socket.on("auctionReset", fetchTeams);
+
+    return () => {
+      socket.off("playerSold");
+      socket.off("playerRemoved");
+      socket.off("auctionReset");
+    };
   }, []);
 
   return (

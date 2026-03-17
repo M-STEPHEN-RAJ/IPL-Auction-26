@@ -31,16 +31,15 @@ export const getTeams = async (req, res) => {
     const teams = await Team.find().populate("players");
 
     const result = teams.map((team) => {
-
       const totalPlayers = team.players.length;
 
       const foreignPlayers = team.players.filter(
-        (p) => p.country !== "India"
+        (p) => p.country !== "India",
       ).length;
 
       const ratingSum = team.players.reduce(
         (sum, p) => sum + (p.rating || 0),
-        0
+        0,
       );
 
       const avgRating = totalPlayers ? (ratingSum / 13).toFixed(2) : 0;
@@ -54,12 +53,11 @@ export const getTeams = async (req, res) => {
         spent: team.spent,
         remaining,
         totalPlayers,
-        foreignPlayers
+        foreignPlayers,
       };
     });
 
     res.json(result);
-
   } catch (error) {
     res.status(500).json({
       message: error.message,
@@ -152,6 +150,14 @@ export const buyPlayer = async (req, res) => {
       "name",
     );
 
+    const io = req.app.get("io");
+
+    io.emit("playerSold", {
+      player: populatedPlayer,
+      teamId,
+      price,
+    });
+
     res.json({
       message: "Player sold successfully!",
       player: populatedPlayer,
@@ -185,6 +191,10 @@ export const markUnsold = async (req, res) => {
 
     await player.save();
 
+    const io = req.app.get("io");
+
+    io.emit("playerUnsold", player);
+
     res.json({
       message: "Player marked as unsold!",
       player,
@@ -196,10 +206,8 @@ export const markUnsold = async (req, res) => {
   }
 };
 
-
 export const removePlayerFromTeam = async (req, res) => {
   try {
-
     const { playerId } = req.body;
 
     const player = await Player.findById(playerId);
@@ -220,7 +228,7 @@ export const removePlayerFromTeam = async (req, res) => {
 
     // remove player from team
     team.players = team.players.filter(
-      (p) => p.toString() !== player._id.toString()
+      (p) => p.toString() !== player._id.toString(),
     );
 
     // decrease spent money
@@ -235,10 +243,18 @@ export const removePlayerFromTeam = async (req, res) => {
 
     await player.save();
 
-    res.json({
-      message: "Player removed from team successfully!",
+    const updatedPlayer = await Player.findById(playerId);
+
+    const io = req.app.get("io");
+
+    io.emit("playerRemoved", {
+      player: updatedPlayer,
     });
 
+    res.json({
+      message: "Player removed from team successfully!",
+      player: updatedPlayer,
+    });
   } catch (error) {
     res.status(500).json({
       message: error.message,
@@ -248,31 +264,33 @@ export const removePlayerFromTeam = async (req, res) => {
 
 export const resetAuction = async (req, res) => {
   try {
-
     await Player.updateMany(
       {},
       {
         status: "available",
         soldTo: null,
-        soldPrice: 0
-      }
+        soldPrice: 0,
+      },
     );
 
     await Team.updateMany(
       {},
       {
         players: [],
-        spent: 0
-      }
+        spent: 0,
+      },
     );
 
-    res.json({
-      message: "Auction reset successfully!"
-    });
+    const io = req.app.get("io");
 
+    io.emit("auctionReset");
+
+    res.json({
+      message: "Auction reset successfully!",
+    });
   } catch (error) {
     res.status(500).json({
-      message: error.message
+      message: error.message,
     });
   }
 };

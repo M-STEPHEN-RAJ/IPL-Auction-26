@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import socket from "../../socket";
 import rating from "../../assets/rating.png";
 import players from "../../assets/players.png";
 import foreign from "../../assets/foreign.png";
 import BASE_URL from "../../utils/api";
 
 const Teams = () => {
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +26,16 @@ const Teams = () => {
 
   useEffect(() => {
     fetchTeams();
+
+    socket.on("playerSold", fetchTeams);
+    socket.on("playerRemoved", fetchTeams);
+    socket.on("auctionReset", fetchTeams);
+
+    return () => {
+      socket.off("playerSold");
+      socket.off("playerRemoved");
+      socket.off("auctionReset");
+    };
   }, []);
 
   return (
@@ -39,7 +50,7 @@ const Teams = () => {
             {teams.map((team) => (
               <div
                 key={team._id}
-                // onClick={() => navigate(`/admin/team/${team._id}`)}
+                onClick={() => navigate(`/admin/team/${team._id}`)}
                 className="relative bg-[#38365B] flex flex-col justify-between h-40 sm:h-48 px-4 sm:px-5 md:px-6 py-3 sm:py-4 md:py-5 rounded-md"
               >
                 <div

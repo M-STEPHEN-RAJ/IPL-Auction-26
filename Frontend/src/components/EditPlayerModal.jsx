@@ -6,7 +6,7 @@ import dropdownIcon from "../assets/dropdown.png";
 
 const roles = ["Batsman", "Bowler", "All-Rounder", "Wicket-Keeper"];
 
-const AddPlayerModal = ({ isOpen, onClose, refreshPlayers }) => {
+const EditPlayerModal = ({ isOpen, onClose, refreshPlayers, player }) => {
   const [form, setForm] = useState({
     name: "",
     country: "",
@@ -32,6 +32,20 @@ const AddPlayerModal = ({ isOpen, onClose, refreshPlayers }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (isOpen && player) {
+      setForm({
+        name: player.name || "",
+        country: player.country || "",
+        isIndian: player.isIndian ?? true,
+        role: player.role || "Batsman",
+        basePrice: player.basePrice || "",
+        image: player.image || "",
+        rating: player.rating || "",
+      });
+    }
+  }, [isOpen, player]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -81,17 +95,22 @@ const AddPlayerModal = ({ isOpen, onClose, refreshPlayers }) => {
     try {
       setSaving(true);
 
-      await axios.post(`${BASE_URL}/players/add`, form, {
-        withCredentials: true,
-      });
+      await axios.put(
+        `${BASE_URL}/players/update`,
+        {
+          playerId: player._id,
+          ...form,
+        },
+        { withCredentials: true },
+      );
 
-      toast.success("Player added successfully!");
+      toast.success("Player updated successfully");
 
       refreshPlayers();
       resetForm();
       onClose();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Error adding player");
+      toast.error(err.response?.data?.message || "Error updating player!");
     } finally {
       setSaving(false);
     }
@@ -110,19 +129,13 @@ const AddPlayerModal = ({ isOpen, onClose, refreshPlayers }) => {
     setRoleOpen(false);
   };
 
-  useEffect(() => {
-    if (isOpen) {
-      resetForm();
-    }
-  }, [isOpen]);
-
-  if (!isOpen) return null;  
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-3 sm:px-0">
       <div className="bg-white px-6 py-5 rounded-xl w-full max-w-lg space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold">Add Player</h3>
+          <h3 className="text-lg font-semibold">Edit Player</h3>
 
           <div
             onClick={() => {
@@ -255,12 +268,12 @@ const AddPlayerModal = ({ isOpen, onClose, refreshPlayers }) => {
           <button
             onClick={handleSubmit}
             disabled={saving}
-            className="w-32 px-4 py-1.5 bg-[#38365B] text-white rounded-md flex items-center justify-center disabled:opacity-60 cursor-pointer"
+            className="w-42 px-4 py-1.5 bg-[#38365B] text-white rounded-md flex items-center justify-center disabled:opacity-60 cursor-pointer"
           >
             {saving ? (
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
-              "Add Player"
+              "Update Player"
             )}
           </button>
         </div>
@@ -269,4 +282,4 @@ const AddPlayerModal = ({ isOpen, onClose, refreshPlayers }) => {
   );
 };
 
-export default AddPlayerModal;
+export default EditPlayerModal;

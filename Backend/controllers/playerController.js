@@ -6,6 +6,10 @@ export const addPlayer = async (req, res) => {
 
     await player.save();
 
+    const io = req.app.get("io");
+
+    io.emit("playerAdded", player);
+
     res.status(201).json({
       message: "Player added successfully!",
       player,
@@ -56,7 +60,7 @@ export const getPlayerById = async (req, res) => {
 
 export const deletePlayer = async (req, res) => {
   try {
-    const player = await Player.findByIdAndDelete(req.params.id);
+    const player = await Player.findById(req.params.id);
 
     if (!player) {
       return res.status(404).json({
@@ -70,6 +74,12 @@ export const deletePlayer = async (req, res) => {
       });
     }
 
+    await Player.findByIdAndDelete(req.params.id);
+
+    const io = req.app.get("io");
+
+    io.emit("playerDeleted", { playerId: player._id });
+
     res.json({
       message: "Player deleted successfully!",
     });
@@ -77,5 +87,32 @@ export const deletePlayer = async (req, res) => {
     res.status(500).json({
       message: error.message,
     });
+  }
+};
+
+export const updatePlayer = async (req, res) => {
+  try {
+    const { playerId, ...updateData } = req.body;
+
+    const player = await Player.findById(playerId);
+
+    if (!player) {
+      return res.status(404).json({ message: "Player not found" });
+    }
+
+    const updatedPlayer = await Player.findByIdAndUpdate(playerId, updateData, {
+      new: true,
+    });
+
+    const io = req.app.get("io");
+
+    io.emit("playerUpdated", updatedPlayer);
+
+    res.json({
+      message: "Player updated successfully!",
+      player: updatedPlayer,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
