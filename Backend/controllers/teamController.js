@@ -75,7 +75,19 @@ export const getTeamById = async (req, res) => {
       });
     }
 
-    res.json(team);
+    const totalPlayers = team.players.length;
+
+    const ratingSum = team.players.reduce(
+      (sum, p) => sum + (p.rating || 0),
+      0
+    );
+
+    const avgRating = totalPlayers ? (ratingSum / 13).toFixed(2) : 0;
+
+    res.json({
+      ...team.toObject(),
+      avgRating,
+    });
   } catch (error) {
     res.status(500).json({
       message: error.message,

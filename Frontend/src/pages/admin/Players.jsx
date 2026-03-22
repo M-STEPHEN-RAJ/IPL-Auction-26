@@ -277,7 +277,7 @@ const Players = () => {
   useEffect(() => {
     fetchPlayers();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [name, status, role, nationality]);
 
   const statuses = ["all", "sold", "unsold", "available"];
   const roles = ["all", "Batsman", "Bowler", "All-Rounder", "Wicket-Keeper"];
@@ -620,6 +620,12 @@ const Players = () => {
               )}
             </div>
 
+            <div className="flex justify-between items-center text-white px-2">
+              <p className="text-sm sm:text-base">
+                Showing {players.length} player{players.length !== 1 && "s"}
+              </p>
+            </div>
+
             <div className="space-y-3">
               {players.map((player) => (
                 <div
@@ -628,6 +634,11 @@ const Players = () => {
                     setSelectedPlayer(player);
                     setSelectedTeam(null);
                     setBidAmount("");
+
+                    window.scrollTo({
+                      top: 0,
+                      behavior: "smooth",
+                    });
                   }}
                   className={`relative flex justify-between rounded-2xl px-3 sm:px-5 bg-[#38365B] ${
                     openActionDropdown === player._id ? "z-50" : "z-0"

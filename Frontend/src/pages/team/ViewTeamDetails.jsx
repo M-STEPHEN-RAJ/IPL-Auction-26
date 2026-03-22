@@ -1,23 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import toast from "react-hot-toast";
 import socket from "../../socket";
 import back from "../../assets/back.png";
 import rating from "../../assets/rating.png";
 import sold from "../../assets/sold.png";
 import unsold from "../../assets/unsold.png";
 import available from "../../assets/available.png";
-import more from "../../assets/more.png";
 import BASE_URL from "../../utils/api";
 
-const TeamDetails = () => {
+const ViewTeamDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [openDropdown, setOpenDropdown] = useState(null);
 
   const fetchTeam = async () => {
     try {
@@ -27,22 +24,6 @@ const TeamDetails = () => {
       console.error("Error fetching team:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const removePlayer = async (playerId) => {
-    try {
-      await axios.post(
-        `${BASE_URL}/teams/remove-player`,
-        { playerId },
-        { withCredentials: true },
-      );
-
-      toast.success("Player removed from team");
-
-      fetchTeam(); // refresh team data
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Error removing player");
     }
   };
 
@@ -271,38 +252,6 @@ const TeamDetails = () => {
                         alt=""
                         className="w-12 sm:w-18 h-12 sm:h-18 lg:w-20 lg:h-20 object-contain bg-white rounded-full my-auto hidden sm:block"
                       />
-                      <div className="relative">
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenDropdown(
-                              openDropdown === player._id ? null : player._id,
-                            );
-                          }}
-                          className="p-2 cursor-pointer"
-                        >
-                          <img
-                            src={more}
-                            className="w-4 sm:w-5 rotate-90"
-                            alt=""
-                          />
-                        </div>
-
-                        {openDropdown === player._id && (
-                          <div className="absolute right-0 top-10 w-40 bg-white rounded-md shadow-md z-10">
-                            <div
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removePlayer(player._id);
-                                setOpenDropdown(null);
-                              }}
-                              className="px-4 py-2 text-red-600 hover:bg-red-100 rounded-md cursor-pointer"
-                            >
-                              Remove Player
-                            </div>
-                          </div>
-                        )}
-                      </div>
                     </div>
                   </div>
                 ))}
@@ -315,4 +264,4 @@ const TeamDetails = () => {
   );
 };
 
-export default TeamDetails;
+export default ViewTeamDetails;

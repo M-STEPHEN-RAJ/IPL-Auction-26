@@ -19,9 +19,10 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "*",
-    credentials: true
-  }
+    // origin: "http://localhost:5173",
+    origin: "https://ipl-auction-datryz-26.web.app",
+    credentials: true,
+  },
 });
 
 app.set("io", io);
@@ -37,10 +38,13 @@ io.on("connection", (socket) => {
 connectDB();
 
 app.use(express.json());
-app.use(cors({
-  origin: true,
-  credentials: true
-}));
+app.use(
+  cors({
+    // origin: "http://localhost:5173",
+    origin: "https://ipl-auction-datryz-26.web.app",
+    credentials: true,
+  }),
+);
 
 app.use(cookieParser());
 
@@ -54,5 +58,5 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () =>
-  console.log(`Server running on http://localhost:${PORT}`)
+  console.log(`Server running on http://localhost:${PORT}`),
 );

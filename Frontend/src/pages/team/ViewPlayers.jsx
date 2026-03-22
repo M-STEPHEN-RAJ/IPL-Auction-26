@@ -95,25 +95,6 @@ const ViewPlayers = () => {
       socket.off("playerRemoved");
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    socket.on("playerSold", fetchPlayers);
-    socket.on("playerUnsold", fetchPlayers);
-    socket.on("playerRemoved", fetchPlayers);
-    socket.on("playerDeleted", fetchPlayers);
-    socket.on("playerAdded", fetchPlayers);
-    socket.on("playerUpdated", fetchPlayers);
-
-    return () => {
-      socket.off("playerSold");
-      socket.off("playerUnsold");
-      socket.off("playerRemoved");
-      socket.off("playerDeleted");
-      socket.off("playerAdded");
-      socket.off("playerUpdated");
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name, status, role, nationality]);
 
   const statuses = ["all", "sold", "unsold", "available"];
@@ -341,11 +322,23 @@ const ViewPlayers = () => {
               )}
             </div>
 
+            <div className="flex justify-between items-center text-white px-2">
+              <p className="text-sm sm:text-base">
+                Showing {players.length} player{players.length !== 1 && "s"}
+              </p>
+            </div>
+
             <div className="space-y-3">
               {players.map((player) => (
                 <div
                   key={player._id}
-                  onClick={() => setSelectedPlayer(player)}
+                  onClick={() => {
+                    setSelectedPlayer(player);
+                    window.scrollTo({
+                      top: 0,
+                      behavior: "smooth",
+                    });
+                  }}
                   className="relative flex justify-between rounded-2xl px-3 sm:px-5 bg-[#38365B]"
                 >
                   <div

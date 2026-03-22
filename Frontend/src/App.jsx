@@ -7,6 +7,7 @@ import TeamDetails from "./pages/admin/TeamDetails";
 import Navbar from "./components/Navbar";
 import ViewTeams from "./pages/team/ViewTeams";
 import ViewPlayers from "./pages/team/ViewPlayers";
+import ViewTeamDetails from "./pages/team/ViewTeamDetails";
 
 const App = () => {
 
@@ -27,6 +28,7 @@ const App = () => {
         <Route path="/admin/teams" element={<Teams />} />
         <Route path="/teams" element={<ViewTeams />} />
         <Route path="/admin/team/:id" element={<TeamDetails />} />
+        <Route path="/team/:id" element={<ViewTeamDetails />} />
       </Routes>
     </>
   );
